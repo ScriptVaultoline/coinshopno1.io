@@ -1137,6 +1137,8 @@ const category =
   const code =
   scriptCode.value;
 
+  const category = scriptCategory.value.trim();
+
 
   if(!name || !code){
 
@@ -1163,8 +1165,7 @@ const category =
       } =
       await client
         .from("scripts")
-        .update({
-category: category,
+        .update({category: category,
           name:name,
 
           description:description,
