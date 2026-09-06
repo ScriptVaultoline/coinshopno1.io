@@ -350,7 +350,7 @@
     </div>
 
 
-    <div class="scriptGrid">
+    <div class="scriptGrid" id="scriptGrid">
 
 
       <div class="scriptCard">
@@ -531,6 +531,7 @@
           setTimeout(function () {
             keyPage.style.display = "none";
             hubPage.style.display = "block";
+            loadScripts(enteredKey);
           }, 500);
         } else {
           showMessage("INVALID OR EXPIRED KEY", "#ff4d5e");
@@ -568,6 +569,118 @@
         }, 1500);
       });
     });
+    async function loadScripts(accessKey) {
+  const grid = document.getElementById("scriptGrid");
+
+  if (!grid) return;
+
+  grid.innerHTML = `
+    <div style="color:#8492a6; padding:20px;">
+      LOADING SCRIPTS...
+    </div>
+  `;
+
+  try {
+    const response = await fetch(
+      SUPABASE_URL + "/rest/v1/rpc/get_scripts_for_key",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY
+        },
+        body: JSON.stringify({
+          input_key: accessKey
+        })
+      }
+    );
+
+    const scripts = await response.json();
+
+    if (!response.ok) {
+      console.error(scripts);
+      grid.innerHTML = `
+        <div style="color:#ff4d5e; padding:20px;">
+          FAILED TO LOAD SCRIPTS
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = "";
+
+    if (!scripts || scripts.length === 0) {
+      grid.innerHTML = `
+        <div style="color:#8492a6; padding:20px;">
+          등록된 스크립트가 없습니다.
+        </div>
+      `;
+      return;
+    }
+
+    scripts.forEach(function(script, index) {
+
+      const card = document.createElement("div");
+      card.className = "scriptCard";
+
+      const number = document.createElement("div");
+      number.className = "scriptNumber";
+      number.textContent =
+        String(index + 1).padStart(2, "0");
+
+      const title = document.createElement("h2");
+      title.textContent = script.name;
+
+      const description = document.createElement("p");
+      description.textContent =
+        script.description || "";
+
+      const button = document.createElement("button");
+      button.className = "copyButton";
+      button.textContent = "COPY SCRIPT";
+
+      button.addEventListener("click", async function() {
+
+        try {
+          await navigator.clipboard.writeText(
+            script.script_code
+          );
+
+          const originalText =
+            button.textContent;
+
+          button.textContent = "COPIED ✓";
+
+          setTimeout(function() {
+            button.textContent = originalText;
+          }, 1500);
+
+        } catch (error) {
+          console.error(error);
+          button.textContent = "COPY FAILED";
+        }
+
+      });
+
+      card.appendChild(number);
+      card.appendChild(title);
+      card.appendChild(description);
+      card.appendChild(button);
+
+      grid.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    grid.innerHTML = `
+      <div style="color:#ff4d5e; padding:20px;">
+        ERROR LOADING SCRIPTS
+      </div>
+    `;
+  }
+    }
   </script>
 
 
