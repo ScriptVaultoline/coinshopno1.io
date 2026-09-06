@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCRIPT VAULT - ADMIN</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:#05070c;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(0,100,255,.16),transparent 38%);
+}
+
+.container{
+  width:100%;
+  max-width:1000px;
+  margin:auto;
+  padding:30px 18px 60px;
+  position:relative;
+}
+
+.logo{
+  text-align:center;
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:2px;
+  margin:15px 0 5px;
+}
+
+.logo span{
+  color:#1683ff;
+}
+
+.subtitle{
+  text-align:center;
+  color:#718096;
+  font-size:12px;
+  letter-spacing:3px;
+  margin-bottom:35px;
+}
+
+.box{
+  background:#0b1019;
+  border:1px solid #19365d;
+  border-radius:18px;
+  padding:25px;
+  margin-bottom:20px;
+  box-shadow:0 0 35px rgba(0,80,255,.08);
+}
+
+h2{
+  margin:0 0 18px;
+  font-size:19px;
+}
+
+input,textarea{
+  width:100%;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:9px;
+  border:1px solid #263852;
+  background:#05080e;
+  color:white;
+  outline:none;
+  font-size:14px;
+}
+
+textarea{
+  min-height:150px;
+  resize:vertical;
+}
+
+input:focus,textarea:focus{
+  border-color:#1683ff;
+}
+
+button{
+  padding:12px 17px;
+  border:1px solid #176fe0;
+  border-radius:9px;
+  background:#0b1b31;
+  color:#49a3ff;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#102846;
+}
+
+.primary{
+  width:100%;
+  border:0;
+  color:white;
+  background:linear-gradient(135deg,#0066ff,#00aaff);
+}
+
+.danger{
+  color:#ff6677;
+  border-color:#762b37;
+  background:#210c11;
+}
+
+.small{
+  font-size:12px;
+  color:#718096;
+}
+
+.message{
+  min-height:20px;
+  margin-top:12px;
+  font-size:13px;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:20px;
+  padding-bottom:15px;
+  border-bottom:1px solid #182337;
+}
+
+.admin-status{
+  color:#39a5ff;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.key-card,
+.user-card,
+.script-card{
+  background:#060a11;
+  border:1px solid #17263d;
+  border-radius:11px;
+  padding:15px;
+  margin-top:10px;
+}
+
+.key-code{
+  color:#4ba3ff;
+  font-weight:bold;
+  font-size:15px;
+  word-break:break-all;
+}
+
+.meta{
+  color:#718096;
+  font-size:12px;
+  margin-top:7px;
+  line-height:1.6;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+@media(max-width:700px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.empty{
+  color:#718096;
+  font-size:13px;
+  padding:10px 0;
+}
+
+#newKey{
+  margin-top:15px;
+  padding:15px;
+  border:1px solid #1683ff;
+  border-radius:10px;
+  color:#49a3ff;
+  word-break:break-all;
+  font-weight:bold;
+}
+
+.script-title{
+  font-size:16px;
+  font-weight:bold;
+}
+
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  color:#a9bdd5;
+  background:#03060a;
+  padding:12px;
+  border-radius:8px;
+  overflow:auto;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    SCRIPT <span>VAULT</span>
+  </div>
+
+  <div class="subtitle">
+    ADMIN CONTROL PANEL
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="box">
+
+    <h2>🔐 ADMIN LOGIN</h2>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="관리자 이메일"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="관리자 비밀번호"
+    >
+
+    <button id="loginButton" class="primary">
+      LOGIN →
+    </button>
+
+    <div id="loginMessage" class="message"></div>
+
+  </div>
+
+
+  <!-- ADMIN PANEL -->
+  <div id="panel" class="hidden">
+
+    <div class="topbar">
+
+      <div class="admin-status">
+        ● ADMIN ACCESS
+      </div>
+
+      <button id="logoutButton">
+        LOGOUT
+      </button>
+
+    </div>
+
+
+    <!-- KEY MANAGEMENT -->
+    <div class="box">
+
+      <h2>🔑 KEY MANAGEMENT</h2>
+
+      <button id="generateButton" class="primary">
+        ＋ GENERATE 1 MONTH KEY
+      </button>
+
+      <div id="newKey" class="hidden"></div>
+
+      <div id="keyList">
+        <div class="empty">키 목록을 불러오는 중...</div>
+      </div>
+
+    </div>
+
+
+    <div class="grid">
+
+      <!-- USERS -->
+      <div class="box">
+
+        <h2>👥 LOGIN USERS</h2>
+
+        <div id="userList">
+          <div class="empty">
+            로그인 사용자 정보를 불러오는 중...
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- SCRIPT MANAGEMENT -->
+      <div class="box">
+
+        <h2>📝 SCRIPT MANAGEMENT</h2>
+
+        <input
+          id="scriptName"
+          placeholder="스크립트 이름"
+        >
+
+        <input
+          id="scriptDescription"
+          placeholder="스크립트 설명"
+        >
+
+        <textarea
+          id="scriptCode"
+          placeholder="스크립트 코드"
+        ></textarea>
+
+        <button id="saveScriptButton" class="primary">
+          ＋ ADD SCRIPT
+        </button>
+
+        <button
+          id="cancelEditButton"
+          class="hidden"
+          style="width:100%;margin-top:8px;"
+        >
+          CANCEL EDIT
+        </button>
+
+        <div id="scriptMessage" class="message"></div>
+
+        <div id="scriptList">
+          <div class="empty">스크립트를 불러오는 중...</div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://lsvuyjykuenmebrdvudf.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_-twXC5DA1dGp64PhFb5yHw_EI_vhwhv";
+
+const client =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const loginBox =
+document.getElementById("loginBox");
+
+const panel =
+document.getElementById("panel");
+
+const email =
+document.getElementById("email");
+
+const password =
+document.getElementById("password");
+
+const loginButton =
+document.getElementById("loginButton");
+
+const loginMessage =
+document.getElementById("loginMessage");
+
+const logoutButton =
+document.getElementById("logoutButton");
+
+const generateButton =
+document.getElementById("generateButton");
+
+const newKey =
+document.getElementById("newKey");
+
+const keyList =
+document.getElementById("keyList");
+
+const userList =
+document.getElementById("userList");
+
+const scriptName =
+document.getElementById("scriptName");
+
+const scriptDescription =
+document.getElementById("scriptDescription");
+
+const scriptCode =
+document.getElementById("scriptCode");
+
+const saveScriptButton =
+document.getElementById("saveScriptButton");
+
+const cancelEditButton =
+document.getElementById("cancelEditButton");
+
+const scriptMessage =
+document.getElementById("scriptMessage");
+
+const scriptList =
+document.getElementById("scriptList");
+
+
+let editingScriptId = null;
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function message(element,text,color){
+
+  element.textContent = text;
+  element.style.color = color;
+
+}
+
+
+/* =========================
+   ADMIN CHECK
+========================= */
+
+async function checkAdmin(){
+
+  const {
+    data:{
+      user
+    }
+  } = await client.auth.getUser();
+
+  if(!user){
+    return false;
+  }
+
+  const {
+    data,
+    error
+  } = await client
+    .from("admins")
+    .select("user_id")
+    .eq("user_id",user.id)
+    .maybeSingle();
+
+  if(error){
+
+    console.error(error);
+
+    return false;
+  }
+
+  return !!data;
+
+}
+
+
+/* =========================
+   LOGIN
+========================= */
+
+loginButton.addEventListener(
+"click",
+async function(){
+
+  const userEmail =
+  email.value.trim();
+
+  const userPassword =
+  password.value;
+
+  if(!userEmail || !userPassword){
+
+    message(
+      loginMessage,
+      "이메일과 비밀번호를 입력하세요.",
+      "#ff5668"
+    );
+
+    return;
+  }
+
+  loginButton.disabled = true;
+
+  loginButton.textContent =
+  "LOGINNING...";
+
+  try{
+
+    const {
+      error
+    } =
+    await client.auth.signInWithPassword({
+
+      email:userEmail,
+
+      password:userPassword
+
+    });
+
+    if(error){
+
+      throw error;
+
+    }
+
+
+    const admin =
+    await checkAdmin();
+
+    if(!admin){
+
+      await client.auth.signOut();
+
+      throw new Error(
+        "관리자 권한이 없는 계정입니다."
+      );
+
+    }
+
+
+    loginBox.classList.add("hidden");
+
+    panel.classList.remove("hidden");
+
+    await loadKeys();
+
+    await loadUsers();
+
+    await loadScripts();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    message(
+      loginMessage,
+      error.message || "로그인 실패",
+      "#ff5668"
+    );
+
+  }
+
+
+  loginButton.disabled = false;
+
+  loginButton.textContent =
+  "LOGIN →";
+
+});
+
+
+/* =========================
+   ENTER KEY LOGIN
+========================= */
+
+password.addEventListener(
+"keydown",
+function(event){
+
+  if(event.key === "Enter"){
+
+    loginButton.click();
+
+  }
+
+});
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+logoutButton.addEventListener(
+"click",
+async function(){
+
+  await client.auth.signOut();
+
+  panel.classList.add("hidden");
+
+  loginBox.classList.remove("hidden");
+
+  password.value = "";
+
+});
+
+
+/* =========================
+   RANDOM KEY
+========================= */
+
+function generateRandomKey(){
+
+  const chars =
+  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  let result =
+  "SV-";
+
+  for(
+    let i=0;
+    i<20;
+    i++
+  ){
+
+    result +=
+    chars[
+      Math.floor(
+        Math.random()*chars.length
+      )
+    ];
+
+    if(i===9){
+
+      result += "-";
+
+    }
+
+  }
+
+  return result;
+
+}
+
+
+/* =========================
+   LOAD KEYS
+========================= */
+
+async function loadKeys(){
+
+  keyList.innerHTML =
+  '<div class="empty">불러오는 중...</div>';
+
+  const {
+    data,
+    error
+  } =
+  await client
+    .from("keys")
+    .select(
+      "id,key_code,created_at,expires_at,used,username"
+    )
+    .order(
+      "created_at",
+      {
+        ascending:false
+      }
+    );
+
+
+  if(error){
+
+    console.error(error);
+
+    keyList.innerHTML =
+    '<div class="empty" style="color:#ff5668">키 목록을 불러오지 못했습니다.</div>';
+
+    return;
+
+  }
+
+
+  if(!data || data.length===0){
+
+    keyList.innerHTML =
+    '<div class="empty">생성된 키가 없습니다.</div>';
+
+    return;
+
+  }
+
+
+  keyList.innerHTML = "";
+
+
+  data.forEach(function(key){
+
+    const card =
+    document.createElement("div");
+
+    card.className =
+    "key-card";
+
+
+    const expires =
+    key.expires_at
+    ?
+    new Date(
+      key.expires_at
+    ).toLocaleString("ko-KR")
+    :
+    "만료일 없음";
+
+
+    card.innerHTML = `
+
+      <div class="key-code">
+        ${escapeHtml(key.key_code)}
+      </div>
+
+      <div class="meta">
+        만료일: ${escapeHtml(expires)}
+        <br>
+        상태:
+        ${key.used ? "사용됨" : "미사용"}
+      </div>
+
+      <div class="actions">
+
+        <button
+          class="delete-key danger"
+          data-id="${key.id}"
+        >
+          🗑 DELETE
+        </button>
+
+      </div>
+
+    `;
+
+
+    card
+      .querySelector(".delete-key")
+      .addEventListener(
+        "click",
+        function(){
+
+          deleteKey(key.id);
+
+        }
+      );
+
+
+    keyList.appendChild(card);
+
+  });
+
+}
+
+
+/* =========================
+   CREATE KEY
+========================= */
+
+generateButton.addEventListener(
+"click",
+async function(){
+
+  generateButton.disabled = true;
+
+  generateButton.textContent =
+  "GENERATING...";
+
+
+  try{
+
+    const key =
+    generateRandomKey();
+
+
+    const expires =
+    new Date(
+      Date.now() +
+      30*24*60*60*1000
+    ).toISOString();
+
+
+    const {
+      error
+    } =
+    await client
+      .from("keys")
+      .insert({
+
+        key_code:key,
+
+        expires_at:expires,
+
+        used:false
+
+      });
+
+
+    if(error){
+
+      throw error;
+
+    }
+
+
+    newKey.classList.remove("hidden");
+
+    newKey.textContent =
+    "NEW KEY: " + key;
+
+
+    await loadKeys();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    newKey.classList.remove("hidden");
+
+    newKey.textContent =
+    "키 생성 실패: " +
+    error.message;
+
+  }
+
+
+  generateButton.disabled = false;
+
+  generateButton.textContent =
+  "＋ GENERATE 1 MONTH KEY";
+
+});
+
+
+/* =========================
+   DELETE KEY
+========================= */
+
+async function deleteKey(id){
+
+  if(
+    !confirm(
+      "정말 이 키를 삭제할까요?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+  await client
+    .from("keys")
+    .delete()
+    .eq("id",id);
+
+
+  if(error){
+
+    alert(
+      "삭제 실패: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadKeys();
+
+}
+
+
+/* =========================
+   LOAD USERS
+========================= */
+
+async function loadUsers(){
+
+  userList.innerHTML =
+  '<div class="empty">불러오는 중...</div>';
+
+
+  const {
+    data,
+    error
+  } =
+  await client.rpc(
+    "get_admin_users"
+  );
+
+
+  if(error){
+
+    console.error(error);
+
+    userList.innerHTML =
+    '<div class="empty" style="color:#ff5668">사용자 정보를 불러오지 못했습니다.</div>';
+
+    return;
+
+  }
+
+
+  if(!data || data.length===0){
+
+    userList.innerHTML =
+    '<div class="empty">아직 로그인한 사용자가 없습니다.</div>';
+
+    return;
+
+  }
+
+
+  userList.innerHTML = "";
+
+
+  data.forEach(function(user){
+
+    const card =
+    document.createElement("div");
+
+    card.className =
+    "user-card";
+
+
+    const last =
+    user.last_login_at
+    ?
+    new Date(
+      user.last_login_at
+    ).toLocaleString("ko-KR")
+    :
+    "-";
+
+
+    card.innerHTML = `
+
+      <strong>
+        ${escapeHtml(
+          user.username || "사용자"
+        )}
+      </strong>
+
+      <div class="meta">
+        KEY:
+        ${escapeHtml(
+          user.key_code || "-"
+        )}
+        <br>
+        마지막 로그인:
+        ${escapeHtml(last)}
+      </div>
+
+    `;
+
+
+    userList.appendChild(card);
+
+  });
+
+}
+
+
+/* =========================
+   LOAD SCRIPTS
+========================= */
+
+async function loadScripts(){
+
+  scriptList.innerHTML =
+  '<div class="empty">불러오는 중...</div>';
+
+
+  const {
+    data,
+    error
+  } =
+  await client
+    .from("scripts")
+    .select(
+      "id,name,description,script_code,created_at"
+    )
+    .order(
+      "created_at",
+      {
+        ascending:false
+      }
+    );
+
+
+  if(error){
+
+    console.error(error);
+
+    scriptList.innerHTML =
+    '<div class="empty" style="color:#ff5668">스크립트를 불러오지 못했습니다.</div>';
+
+    return;
+
+  }
+
+
+  if(!data || data.length===0){
+
+    scriptList.innerHTML =
+    '<div class="empty">등록된 스크립트가 없습니다.</div>';
+
+    return;
+
+  }
+
+
+  scriptList.innerHTML = "";
+
+
+  data.forEach(function(script){
+
+    const card =
+    document.createElement("div");
+
+    card.className =
+    "script-card";
+
+
+    card.innerHTML = `
+
+      <div class="script-title">
+        ${escapeHtml(script.name)}
+      </div>
+
+      <div class="meta">
+        ${escapeHtml(
+          script.description || ""
+        )}
+      </div>
+
+      <pre>${escapeHtml(
+        script.script_code
+      )}</pre>
+
+      <div class="actions">
+
+        <button class="edit-script">
+          ✏ EDIT
+        </button>
+
+        <button class="delete-script danger">
+          🗑 DELETE
+        </button>
+
+      </div>
+
+    `;
+
+
+    card
+      .querySelector(".edit-script")
+      .addEventListener(
+        "click",
+        function(){
+
+          editScript(script);
+
+        }
+      );
+
+
+    card
+      .querySelector(".delete-script")
+      .addEventListener(
+        "click",
+        function(){
+
+          deleteScript(script.id);
+
+        }
+      );
+
+
+    scriptList.appendChild(card);
+
+  });
+
+}
+
+
+/* =========================
+   ADD / UPDATE SCRIPT
+========================= */
+
+saveScriptButton.addEventListener(
+"click",
+async function(){
+
+  const name =
+  scriptName.value.trim();
+
+  const description =
+  scriptDescription.value.trim();
+
+  const code =
+  scriptCode.value;
+
+
+  if(!name || !code){
+
+    message(
+      scriptMessage,
+      "스크립트 이름과 코드를 입력하세요.",
+      "#ff5668"
+    );
+
+    return;
+
+  }
+
+
+  saveScriptButton.disabled = true;
+
+
+  try{
+
+    if(editingScriptId){
+
+      const {
+        error
+      } =
+      await client
+        .from("scripts")
+        .update({
+
+          name:name,
+
+          description:description,
+
+          script_code:code
+
+        })
+        .eq(
+          "id",
+          editingScriptId
+        );
+
+
+      if(error){
+
+        throw error;
+
+      }
+
+
+      message(
+        scriptMessage,
+        "스크립트가 수정되었습니다.",
+        "#39a5ff"
+      );
+
+
+    }else{
+
+      const {
+        error
+      } =
+      await client
+        .from("scripts")
+        .insert({
+
+          name:name,
+
+          description:description,
+
+          script_code:code
+
+        });
+
+
+      if(error){
+
+        throw error;
+
+      }
+
+
+      message(
+        scriptMessage,
+        "스크립트가 추가되었습니다.",
+        "#39a5ff"
+      );
+
+    }
+
+
+    clearScriptForm();
+
+    await loadScripts();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    message(
+      scriptMessage,
+      error.message || "저장 실패",
+      "#ff5668"
+    );
+
+  }
+
+
+  saveScriptButton.disabled = false;
+
+});
+
+
+/* =========================
+   EDIT SCRIPT
+========================= */
+
+function editScript(script){
+
+  editingScriptId =
+  script.id;
+
+  scriptName.value =
+  script.name;
+
+  scriptDescription.value =
+  script.description || "";
+
+  scriptCode.value =
+  script.script_code;
+
+  saveScriptButton.textContent =
+  "SAVE CHANGES";
+
+  cancelEditButton.classList.remove(
+    "hidden"
+  );
+
+  window.scrollTo({
+    top:document.body.scrollHeight,
+    behavior:"smooth"
+  });
+
+}
+
+
+/* =========================
+   CANCEL EDIT
+========================= */
+
+cancelEditButton.addEventListener(
+"click",
+function(){
+
+  clearScriptForm();
+
+});
+
+
+function clearScriptForm(){
+
+  editingScriptId = null;
+
+  scriptName.value = "";
+
+  scriptDescription.value = "";
+
+  scriptCode.value = "";
+
+  saveScriptButton.textContent =
+  "＋ ADD SCRIPT";
+
+  cancelEditButton.classList.add(
+    "hidden"
+  );
+
+}
+
+
+/* =========================
+   DELETE SCRIPT
+========================= */
+
+async function deleteScript(id){
+
+  if(
+    !confirm(
+      "정말 이 스크립트를 삭제할까요?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+  await client
+    .from("scripts")
+    .delete()
+    .eq("id",id);
+
+
+  if(error){
+
+    alert(
+      "삭제 실패: " +
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  await loadScripts();
+
+}
+
+
+/* =========================
+   HTML ESCAPE
+========================= */
+
+function escapeHtml(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
