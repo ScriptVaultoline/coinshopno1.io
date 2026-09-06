@@ -574,11 +574,6 @@
 
   if (!grid) return;
 
-  grid.innerHTML = `
-    <div style="color:#8492a6; padding:20px;">
-      LOADING SCRIPTS...
-    </div>
-  `;
 
   try {
     const response = await fetch(
@@ -608,7 +603,7 @@
       return;
     }
 
-    grid.innerHTML = "";
+
 
     if (!scripts || scripts.length === 0) {
       grid.innerHTML = `
