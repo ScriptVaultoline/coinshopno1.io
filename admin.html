@@ -1050,16 +1050,19 @@ async function loadScripts(){
 
 
     card.innerHTML = `
+    <div class="script-category">
+        ${escapeHtml(script.category || "")}
+    </div>
 
-      <div class="script-title">
+    <div class="script-title">
         ${escapeHtml(script.name)}
-      </div>
+    </div>
 
-      <div class="meta">
+    <div class="meta">
         ${escapeHtml(
-          script.description || ""
+            script.description || ""
         )}
-      </div>
+    </div>
 
       <pre>${escapeHtml(
         script.script_code
