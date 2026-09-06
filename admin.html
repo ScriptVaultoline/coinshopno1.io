@@ -319,7 +319,11 @@ pre{
       <div class="box">
 
         <h2>📝 SCRIPT MANAGEMENT</h2>
-
+<input
+  type="text"
+  id="scriptCategory"
+  placeholder="스크립트 카테고리"
+/>
         <input
           id="scriptName"
           placeholder="스크립트 이름"
@@ -1121,7 +1125,9 @@ async function loadScripts(){
 saveScriptButton.addEventListener(
 "click",
 async function(){
-
+const category =
+  scriptCategory.value.trim();
+  
   const name =
   scriptName.value.trim();
 
@@ -1158,7 +1164,7 @@ async function(){
       await client
         .from("scripts")
         .update({
-
+category: category,
           name:name,
 
           description:description,
@@ -1251,7 +1257,7 @@ function editScript(script){
 
   editingScriptId =
   script.id;
-
+scriptCategory.value = script.category || "";
   scriptName.value =
   script.name;
 
